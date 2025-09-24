@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Pathways - Climate-aware Property & Planning Insights</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --earth-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            --card-hover-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            --text-primary: #2d3748;
+            --text-secondary: #718096;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* Navbar Styles */
+        .navbar-custom {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: var(--earth-gradient);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 2rem;
+            max-width: 600px;
+        }
+
+        .btn-hero {
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+        }
+
+        .btn-hero-primary {
+            background: white;
+            color: var(--text-primary);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn-hero-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            color: var(--text-primary);
+        }
+
+        .btn-hero-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .btn-hero-secondary:hover {
+            background: rgba(255,255,255,0.3);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .liveability-counter {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            margin-top: 3rem;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .counter-number {
+            font-size: 4rem;
+            font-weight: 700;
+            color: white;
+            display: block;
+        }
+
+        .counter-label {
+            color: rgba(255,255,255,0.8);
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+
+        /* Card Styles */
+        .custom-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+
+        .custom-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--card-hover-shadow);
+        }
+
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 1.5rem;
+        }
+
+        .icon-heat { background: linear-gradient(135deg, #ff6b6b, #ee5a24); }
+        .icon-water { background: linear-gradient(135deg, #74b9ff, #0984e3); }
+        .icon-air { background: linear-gradient(135deg, #a29bfe, #6c5ce7); }
+
+        /* Map Styles */
+        .map-container {
+            height: 500px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+        }
+
+        .mini-map {
+            height: 200px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        /* Section Styles */
+        .section-padding {
+            padding: 80px 0;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 3rem;
+            color: var(--text-primary);
+        }
+
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 3rem;
+        }
+
+        /* Scorecard Styles */
+        .scorecard {
+            background: var(--success-gradient);
+            color: white;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .score-number {
+            font-size: 3rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .score-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+        }
+
+        /* Controls */
+        .map-controls {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .form-select, .form-range {
+            margin-bottom: 10px;
+        }
+
+        /* Testimonials */
+        .testimonial-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+            border-left: 4px solid;
+            height: 100%;
+        }
+
+        .testimonial-card:nth-child(1) { border-left-color: #667eea; }
+        .testimonial-card:nth-child(2) { border-left-color: #4facfe; }
+        .testimonial-card:nth-child(3) { border-left-color: #11998e; }
+
+        .testimonial-quote {
+            font-style: italic;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .testimonial-author {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        .footer {
+            background: #2d3748;
+            color: white;
+            padding: 3rem 0 2rem;
+        }
+
+        .footer h6 {
+            color: #a0aec0;
+            margin-bottom: 1rem;
+        }
+
+        .footer a {
+            color: #cbd5e0;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer a:hover {
+            color: white;
+        }
+
+        /* Modal Styles */
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--border-color);
+            padding: 2rem 2rem 1rem;
+        }
+
+        .modal-body {
+            padding: 1rem 2rem 2rem;
+        }
+
+        .form-control {
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            padding: 12px 15px;
+            margin-bottom: 1rem;
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .section-padding {
+                padding: 60px 0;
+            }
+            
+            .counter-number {
+                font-size: 3rem;
+            }
+        }
+
+        /* Animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Collapsible sections */
+        .collapse-toggle {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .collapse-toggle:hover {
+            color: #667eea;
+        }
+
+        .collapse-toggle .fa-chevron-down {
+            transition: transform 0.3s ease;
+        }
+
+        .collapse-toggle[aria-expanded="true"] .fa-chevron-down {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sticky Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-globe-americas me-2"></i>Data Pathways</a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#map-section">Explore Map</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Register</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#signInModal">Sign In</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="hero-content">
+                        <h1 class="hero-title">Decide. Design. Deliver</h1>
+                        <p class="hero-subtitle">Climate-aware property & planning insights powered by NASA Earth Data. Make informed decisions with comprehensive liveability scores and environmental analytics.</p>
+                        
+                        <div class="hero-buttons">
+                            <a href="#map-section" class="btn-hero btn-hero-primary">Explore Map</a>
+                            <a href="#planner-tools" class="btn-hero btn-hero-secondary">Planner Tools</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="liveability-counter">
+                        <span class="counter-number" id="liveabilityScore">0</span>
+                        <div class="counter-label">Average Liveability Score</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Challenges Section -->
+    <section class="section-padding">
+        <div class="container">
+            <h2 class="section-title">Urban Challenges We Address</h2>
+            <p class="section-subtitle">Understanding environmental risks is crucial for sustainable development and property investment decisions.</p>
+            
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="custom-card fade-in">
+                        <div class="card-icon icon-heat">
+                            <i class="fas fa-thermometer-half"></i>
+                        </div>
+                        <h4>Urban Heat Islands</h4>
+                        <p>Rising temperatures in urban areas affect property values, energy costs, and quality of life. Our NASA-powered heat mapping helps identify cooler, more sustainable locations.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="custom-card fade-in">
+                        <div class="card-icon icon-water">
+                            <i class="fas fa-tint"></i>
+                        </div>
+                        <h4>Water Stress</h4>
+                        <p>Water availability and flood risks are critical factors for long-term property viability. Access real-time precipitation and groundwater data for informed decisions.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="custom-card fade-in">
+                        <div class="card-icon icon-air">
+                            <i class="fas fa-wind"></i>
+                        </div>
+                        <h4>Air Quality</h4>
+                        <p>Poor air quality impacts health and property desirability. Monitor NO2 levels, aerosol optical depth, and pollution trends with satellite data.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section-padding bg-light">
+        <div class="container">
+            <h2 class="section-title">Smart Solutions for Every Stakeholder</h2>
+            
+            <div class="row g-5 align-items-center">
+                <div class="col-lg-6">
+                    <div class="custom-card">
+                        <h3><i class="fas fa-home me-2 text-primary"></i>Smart Location Buyer</h3>
+                        <p class="mb-4">Discover properties with comprehensive environmental insights. Our platform analyzes NASA satellite data to provide liveability scores, climate risks, and future projections for any location worldwide.</p>
+                        
+                        <div class="mini-map" id="buyerMiniMap"></div>
+                        
+                        <div class="mt-3">
+                            <small class="text-muted">Interactive preview showing vegetation health (NDVI) data</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="custom-card">
+                        <h3><i class="fas fa-tools me-2 text-success"></i>Smart Construction Planner</h3>
+                        <p class="mb-4">Plan sustainable developments with data-driven insights. Access environmental impact assessments, zoning recommendations, and blockchain-verified sustainability credentials.</p>
+                        
+                        <div class="d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 10px;">
+                            <div class="text-center">
+                                <div class="badge bg-success fs-6 mb-2">
+                                    <i class="fas fa-certificate me-1"></i>Blockchain Verified
+                                </div>
+                                <div class="text-muted">Sustainability Passport</div>
+                                <small class="text-muted">Immutable environmental compliance records</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Map & Scorecard Section -->
+    <section class="section-padding" id="map-section">
+        <div class="container-fluid">
+            <h2 class="section-title">Interactive Climate Data Explorer</h2>
+            <p class="section-subtitle">Click anywhere on the map to analyze environmental conditions and get instant liveability insights powered by NASA Earth observation data.</p>
+            
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <!-- Map Controls -->
+                    <div class="map-controls">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">NASA Data Layer</label>
+                                <select class="form-select" id="layerSelect">
+                                    <option value="base">Base Map</option>
+                                    <option value="ndvi">NDVI (Vegetation)</option>
+                                    <option value="lst">Land Surface Temperature</option>
+                                    <option value="precipitation">Precipitation</option>
+                                    <option value="aqi">Air Quality Index</option>
+                                    <option value="groundwater">Groundwater</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Time Period: <span id="timeValue">2024</span></label>
+                                <input type="range" class="form-range" id="timeSlider" min="2015" max="2025" value="2024">
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch mt-4">
+                                    <input class="form-check-input" type="checkbox" id="liveDataToggle">
+                                    <label class="form-check-label" for="liveDataToggle">Use Live NASA Data</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Interactive Map -->
+                    <div class="map-container" id="mainMap"></div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <!-- Liveability Scorecard -->
+                    <div class="scorecard">
+                        <span class="score-number" id="currentScore">75</span>
+                        <div class="score-label">Liveability Score</div>
+                        <small style="opacity: 0.8;">Click on map to update</small>
+                    </div>
+                    
+                    <!-- Environmental Indicators Chart -->
+                    <div class="chart-container">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                    
+                    <!-- Location Details -->
+                    <div class="custom-card mt-3">
+                        <h5>Location Analysis</h5>
+                        <div id="locationDetails">
+                            <p class="text-muted">Click on the map to analyze environmental conditions for any location.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Scores Methodology Section -->
+    <section class="section-padding bg-light">
+        <div class="container">
+            <div class="custom-card">
+                <h3 class="collapse-toggle" data-bs-toggle="collapse" data-bs-target="#methodologyCollapse" aria-expanded="false">
+                    <i class="fas fa-calculator me-2"></i>Liveability Score Methodology
+                    <i class="fas fa-chevron-down float-end"></i>
+                </h3>
+                
+                <div class="collapse" id="methodologyCollapse">
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <p>Our liveability scores combine multiple NASA Earth observation datasets to provide comprehensive environmental assessments:</p>
+                            
+                            <div class="row g-3">
+                                <div class="col-sm-6">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="badge bg-danger me-2">30%</div>
+                                        <strong>Air Quality</strong>
+                                    </div>
+                                    <small class="text-muted">NO2 levels, aerosol optical depth from AIRS/OMI satellites</small>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="badge bg-primary me-2">25%</div>
+                                        <strong>Water Resources</strong>
+                                    </div>
+                                    <small class="text-muted">Precipitation patterns (GPM) and groundwater levels (GRACE)</small>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="badge bg-success me-2">20%</div>
+                                        <strong>Vegetation Health</strong>
+                                    </div>
+                                    <small class="text-muted">NDVI from MODIS/Landsat indicating green spaces</small>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="badge bg-warning me-2">15%</div>
+                                        <strong>Temperature</strong>
+                                    </div>
+                                    <small class="text-muted">Land surface temperature from MODIS thermal bands</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3" style="background: #f8f9fa; border-radius: 10px;">
+                                <h4>Score Calculation</h4>
+                                <p class="mb-1"><small>1. Normalize each indicator (0-1)</small></p>
+                                <p class="mb-1"><small>2. Apply weighted average</small></p>
+                                <p class="mb-0"><small>3. Scale to 0-100 range</small></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Planner Tools Section -->
+    <section class="section-padding" id="planner-tools">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="custom-card text-center">
+                        <h3><i class="fas fa-drafting-compass me-2 text-primary"></i>Advanced Planner Tools</h3>
+                        <p class="mb-4">Access comprehensive data-driven zoning insights, environmental impact assessments, and blockchain-verified Sustainability Passports for your development projects.</p>
+                        
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <div class="p-3" style="background: #f8f9fa; border-radius: 10px;">
+                                    <i class="fas fa-map-marked-alt fa-2x text-primary mb-2"></i>
+                                    <h6>Zoning Analysis</h6>
+                                    <small class="text-muted">AI-powered zoning recommendations</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3" style="background: #f8f9fa; border-radius: 10px;">
+                                    <i class="fas fa-leaf fa-2x text-success mb-2"></i>
+                                    <h6>Impact Assessment</h6>
+                                    <small class="text-muted">Environmental impact modeling</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3" style="background: #f8f9fa; border-radius: 10px;">
+                                    <i class="fas fa-certificate fa-2x text-warning mb-2"></i>
+                                    <h6>Sustainability Passport</h6>
+                                    <small class="text-muted">Blockchain-verified credentials</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#demoModal">
+                            <i class="fas fa-rocket me-2"></i>Request Integration
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- NASA Data Section -->
+    <section class="section-padding bg-light">
+        <div class="container">
+            <div class="custom-card">
+                <h3 class="collapse-toggle" data-bs-toggle="collapse" data-bs-target="#nasaDataCollapse" aria-expanded="false">
+                    <i class="fas fa-satellite me-2"></i>NASA Earth Observation Data Sources
+                    <i class="fas fa-chevron-down float-end"></i>
+                </h3>
+                
+                <div class="collapse" id="nasaDataCollapse">
+                    <hr>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <h5>Satellite Missions</h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-satellite text-primary me-2"></i><strong>MODIS</strong> - Vegetation health (NDVI), land surface temperature</li>
+                                <li class="mb-2"><i class="fas fa-satellite text-success me-2"></i><strong>Landsat</strong> - High-resolution land cover and vegetation analysis</li>
+                                <li class="mb-2"><i class="fas fa-satellite text-info me-2"></i><strong>AIRS/OMI</strong> - Atmospheric composition and air quality monitoring</li>
+                                <li class="mb-2"><i class="fas fa-satellite text-warning me-2"></i><strong>GPM</strong> - Global precipitation measurement</li>
+                                <li class="mb-2"><i class="fas fa-satellite text-secondary me-2"></i><strong>GRACE</strong> - Groundwater and water storage changes</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Data Processing</h5>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Demo Mode Active:</strong> This platform uses bundled JSON data for demonstration. Production version integrates with NASA's Global Imagery Browse Services (GIBS) and Earth Data APIs for real-time satellite imagery and environmental data.
+                            </div>
+                            <p><small class="text-muted">Data is processed through NASA's Earth Science Data Systems (ESDS) and delivered via standardized APIs with global coverage and regular updates.</small></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="section-padding">
+        <div class="container">
+            <h2 class="section-title">Trusted by Industry Leaders</h2>
+            
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="testimonial-card">
+                        <div class="testimonial-quote">"Data Pathways has completely transformed our city planning process. The NASA-powered insights help us make evidence-based decisions for sustainable urban development."</div>
+                        <div class="testimonial-author"> Samarth Sharma, City Administrator</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="testimonial-card">
+                        <div class="testimonial-quote">"The environmental risk assessments are critical for our property investment decisions. We can now identify climate-resilient locations with confidence."</div>
+                        <div class="testimonial-author"> Anant Ambani, Real Estate Investor</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="testimonial-card">
+                        <div class="testimonial-quote">"The blockchain-verified sustainability passports have streamlined our zoning and compliance processes. It's a game-changer for sustainable development."</div>
+                        <div class="testimonial-author"> Anand Manhindra, Urban Planner</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-3">
+                    <h6>NASA Data Sources</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#">MODIS Terra/Aqua</a></li>
+                        <li><a href="#">Landsat 8/9</a></li>
+                        <li><a href="#">AIRS Atmospheric Data</a></li>
+                        <li><a href="#">OMI Air Quality</a></li>
+                        <li><a href="#">GPM Precipitation</a></li>
+                        <li><a href="#">GRACE Groundwater</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6>Platform</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#">About Data Pathways</a></li>
+                        <li><a href="#">API Documentation</a></li>
+                        <li><a href="#">Data Methodology</a></li>
+                        <li><a href="#">Integration Guide</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6>Legal</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Data Usage Policy</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6>Support</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">System Status</a></li>
+                        <li><a href="#">Community Forum</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 Data Pathways. Powered by NASA Earth Science Data.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="me-3"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="me-3"><i class="fab fa-linkedin"></i></a>
+                    <a href="#" class="me-3"><i class="fab fa-github"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Demo Modal -->
+    <div class="modal fade" id="demoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-rocket me-2"></i>Request Integration Access</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="demoForm">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Organization</label>
+                            <input type="text" class="form-control" name="organization">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Use Case</label>
+                            <textarea class="form-control" name="usecase" rows="3" placeholder="Describe how you plan to use Data Pathways..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Request Access</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal fade" id="registerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Create Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="signup.do" method="post" id="registerForm">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-control" name="password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Role</label>
+                            <select class="form-select" name="role" required>
+                                <option value="">Select your role</option>
+                                <option value="buyer">Property Buyer</option>
+                                <option value="builder">Construction Builder</option>
+                                <option value="admin">System Administrator</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Create Account</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sign In Modal -->
+    <div class="modal fade" id="signInModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-sign-in-alt me-2"></i>Sign In</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="signin.do" method="post" id="signInForm">
+                        <div class="mb-3">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-control" name="password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Role</label>
+                            <select class="form-select" name="role" required>
+                                <option value="">Select your role</option>
+                                <option value="Buyer">Property Buyer</option>
+                                <option value="Builder">Construction Builder</option>
+                                <option value="Admin">System Administrator</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Sign In</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <script>
+        // Global variables
+        let mainMap, buyerMiniMap, currentMarker, radarChart;
+        let currentLat = 0, currentLng = 0;
+        let nasaLayers = {};
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeMaps();
+            initializeCharts();
+            initializeAnimations();
+            initializeEventListeners();
+        });
+
+        // Initialize maps
+        function initializeMaps() {
+            // Main interactive map
+            mainMap = L.map('mainMap').setView([0, 0], 2);
+            
+            // Base layer
+            const baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(mainMap);
+
+            // NASA GIBS layers
+            nasaLayers = {
+                base: baseLayer,
+                ndvi: L.tileLayer('https://map1.vis.earthdata.nasa.gov/wmts-geo/1.0.0/MODIS_Terra_NDVI_8Day/default/{time}/EPSG4326_250m/{z}/{y}/{x}.png', {
+                    attribution: 'NASA GIBS',
+                    time: '2024-01-01'
+                }),
+                lst: L.tileLayer('https://map1.vis.earthdata.nasa.gov/wmts-geo/1.0.0/MODIS_Terra_Land_Surface_Temp_Day/default/{time}/EPSG4326_1km/{z}/{y}/{x}.png', {
+                    attribution: 'NASA GIBS',
+                    time: '2024-01-01'
+                }),
+                precipitation: L.tileLayer('https://map1.vis.earthdata.nasa.gov/wmts-geo/1.0.0/GPM_3IMERGHH_06_precipitation/default/{time}/EPSG4326_2km/{z}/{y}/{x}.png', {
+                    attribution: 'NASA GIBS',
+                    time: '2024-01-01'
+                })
+            };
+
+            // Map click event
+            mainMap.on('click', function(e) {
+                currentLat = e.latlng.lat;
+                currentLng = e.latlng.lng;
+                
+                // Remove existing marker
+                if (currentMarker) {
+                    mainMap.removeLayer(currentMarker);
+                }
+                
+                // Add new marker
+                currentMarker = L.marker([currentLat, currentLng], {
+                    draggable: true
+                }).addTo(mainMap);
+                
+                // Update marker drag event
+                currentMarker.on('drag', function(e) {
+                    currentLat = e.target.getLatLng().lat;
+                    currentLng = e.target.getLatLng().lng;
+                    updateLocationAnalysis();
+                });
+                
+                // Show popup with coordinates
+                const popup = L.popup()
+                    .setLatLng([currentLat, currentLng])
+                    .setContent('Lat: ' + currentLat.toFixed(4) + '<br>Lng: ' + currentLng.toFixed(4) + '<br>NDVI: ' + generateNDVI(currentLat, currentLng).toFixed(3))
+                    .openOn(mainMap);
+                
+                updateLocationAnalysis();
+            });
+
+            // Buyer mini map
+            buyerMiniMap = L.map('buyerMiniMap').setView([0, 0], 2);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(buyerMiniMap);
+
+            // Add sample NDVI overlay to mini map
+            const ndviOverlay = L.tileLayer('https://map1.vis.earthdata.nasa.gov/wmts-geo/1.0.0/MODIS_Terra_NDVI_8Day/default/2024-01-01/EPSG4326_250m/{z}/{y}/{x}.png', {
+                attribution: 'NASA GIBS',
+                opacity: 0.7
+            }).addTo(buyerMiniMap);
+        }
+
+        // Initialize charts
+        function initializeCharts() {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Air Quality', 'Water Resources', 'Vegetation', 'Temperature', 'Infrastructure'],
+                    datasets: [{
+                        label: 'Environmental Score',
+                        data: [75, 80, 65, 70, 85],
+                        backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(102, 126, 234, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize animations
+        function initializeAnimations() {
+            // Animate liveability score counter
+            gsap.to("#liveabilityScore", {
+                innerHTML: 75,
+                duration: 2,
+                ease: "power2.out",
+                snap: { innerHTML: 1 }
+            });
+
+            // Fade in animations for cards
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.fade-in').forEach(el => {
+                observer.observe(el);
+            });
+        }
+
+        // Initialize event listeners
+        function initializeEventListeners() {
+            // Layer selection
+            document.getElementById('layerSelect').addEventListener('change', function(e) {
+                const selectedLayer = e.target.value;
+                
+                // Remove all layers first
+                Object.values(nasaLayers).forEach(layer => {
+                    if (mainMap.hasLayer(layer)) {
+                        mainMap.removeLayer(layer);
+                    }
+                });
+                
+                // Add selected layer
+                if (nasaLayers[selectedLayer]) {
+                    nasaLayers[selectedLayer].addTo(mainMap);
+                }
+            });
+
+            // Time slider
+            document.getElementById('timeSlider').addEventListener('input', function(e) {
+                document.getElementById('timeValue').textContent = e.target.value;
+                // Update NASA layers with new time (in real implementation)
+            });
+
+            // Live data toggle
+            document.getElementById('liveDataToggle').addEventListener('change', function(e) {
+                if (e.target.checked) {
+                    alert('Live NASA data mode activated! Real-time satellite data will be used for analysis.');
+                } else {
+                    alert('Demo mode activated. Using bundled sample data for demonstration.');
+                }
+            });
+
+            // Form submissions
+            document.getElementById('demoForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                alert('Thank you for your interest! We will contact you soon with integration details.');
+                bootstrap.Modal.getInstance(document.getElementById('demoModal')).hide();
+            });
+
+            document.getElementById('registerForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                alert('Registration successful! Please check your email for verification.');
+                bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
+            });
+
+            document.getElementById('signInForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                alert('Sign in successful! Redirecting to dashboard...');
+                bootstrap.Modal.getInstance(document.getElementById('signInModal')).hide();
+            });
+        }
+
+        // Generate demo NASA data based on coordinates
+        function generateNASAData(lat, lng) {
+            // Generate realistic values based on geographic location
+            const latFactor = Math.abs(lat) / 90;
+            const lngFactor = (lng + 180) / 360;
+            
+            return {
+                ndvi: generateNDVI(lat, lng),
+                lst: 20 + (30 - Math.abs(lat)) + Math.random() * 10, // Temperature
+                precipitation: Math.max(0, 100 - latFactor * 80 + Math.random() * 100), // Precipitation
+                aqi: 20 + latFactor * 30 + Math.random() * 20, // Air quality
+                groundwater: -5 + Math.random() * 10, // Groundwater anomaly
+                airQuality: Math.max(10, 50 - latFactor * 20 + Math.random() * 20)
+            };
+        }
+
+        function generateNDVI(lat, lng) {
+            // Higher NDVI near equator, lower at poles
+            const latFactor = 1 - Math.abs(lat) / 90;
+            return Math.max(0, Math.min(1, latFactor * 0.8 + Math.random() * 0.2));
+        }
+
+        // Update location analysis
+        function updateLocationAnalysis() {
+            const data = generateNASAData(currentLat, currentLng);
+            
+            // Calculate liveability score
+            const score = Math.round(
+                data.airQuality * 0.3 +
+                (data.precipitation / 200 * 100) * 0.25 +
+                (data.ndvi * 100) * 0.2 +
+                ((40 - Math.abs(data.lst - 25)) / 40 * 100) * 0.15 +
+                75 * 0.1 // Infrastructure placeholder
+            );
+            
+            // Update score display
+            gsap.to("#currentScore", {
+                innerHTML: score,
+                duration: 1,
+                ease: "power2.out",
+                snap: { innerHTML: 1 }
+            });
+            
+            // Update radar chart
+            radarChart.data.datasets[0].data = [
+                100 - data.airQuality, // Invert for better score
+                data.precipitation / 2, // Scale precipitation
+                data.ndvi * 100,
+                (40 - Math.abs(data.lst - 25)) / 40 * 100, // Optimal temp around 25°C
+                75 // Infrastructure placeholder
+            ];
+            radarChart.update();
+            
+            // Update location details
+            document.getElementById('locationDetails').innerHTML = 
+                '<div class="row g-2">' +
+                '<div class="col-6"><small><strong>Coordinates:</strong><br>' + currentLat.toFixed(4) + ', ' + currentLng.toFixed(4) + '</small></div>' +
+                '<div class="col-6"><small><strong>NDVI:</strong><br>' + data.ndvi.toFixed(3) + '</small></div>' +
+                '<div class="col-6"><small><strong>Temperature:</strong><br>' + data.lst.toFixed(1) + '°C</small></div>' +
+                '<div class="col-6"><small><strong>Precipitation:</strong><br>' + data.precipitation.toFixed(0) + ' mm</small></div>' +
+                '<div class="col-6"><small><strong>Air Quality:</strong><br>' + data.airQuality.toFixed(1) + ' µg/m³</small></div>' +
+                '<div class="col-6"><small><strong>Groundwater:</strong><br>' + data.groundwater.toFixed(1) + ' cm</small></div>' +
+                '</div>';
+        }
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

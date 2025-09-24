@@ -1,0 +1,95 @@
+create database dpdb;
+use dpdb;
+
+CREATE TABLE users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role ENUM('buyer', 'builder', 'admin') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE locations (
+    location_id INT AUTO_INCREMENT PRIMARY KEY,
+    city VARCHAR(100),
+    state VARCHAR(100),
+    country VARCHAR(100),
+    latitude DECIMAL(10,8),
+    longitude DECIMAL(11,8)
+);
+
+CREATE TABLE environmental_data (
+    env_id INT AUTO_INCREMENT PRIMARY KEY,
+    location_id INT,
+    air_quality_index INT,
+    water_security_score INT,
+    green_cover_percentage DECIMAL(5,2),
+    heat_island_risk_score INT,
+    ecosystem_health_score INT,
+    infrastructure_quality_score INT,
+    recorded_at DATE,
+    FOREIGN KEY (location_id) REFERENCES locations(location_id)
+);
+
+CREATE TABLE livability_scores (
+    score_id INT AUTO_INCREMENT PRIMARY KEY,
+    location_id INT,
+    overall_score DECIMAL(5,2),
+    calculated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (location_id) REFERENCES locations(location_id)
+);
+
+CREATE TABLE properties (
+    property_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    location_id INT,
+    property_name VARCHAR(200),
+    property_type ENUM('residential', 'commercial', 'land'),
+    size_sqft DECIMAL(10,2),
+    price DECIMAL(15,2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (location_id) REFERENCES locations(location_id)
+);
+
+CREATE TABLE projects (
+    project_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    location_id INT,
+    project_name VARCHAR(200),
+    project_type ENUM('residential', 'commercial', 'mixed'),
+    status ENUM('planning', 'ongoing', 'completed'),
+    sustainability_passport BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (location_id) REFERENCES locations(location_id)
+);
+
+CREATE TABLE compliance_reports (
+    report_id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT,
+    zoning_status ENUM('approved', 'pending', 'rejected'),
+    environmental_clearance BOOLEAN,
+    green_building_certification BOOLEAN,
+    issued_at DATE,
+    FOREIGN KEY (project_id) REFERENCES projects(project_id)
+);
+
+CREATE TABLE sustainability_passports (
+    passport_id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT,
+    blockchain_hash VARCHAR(255) UNIQUE,
+    issued_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(project_id)
+);
+
+CREATE TABLE predictive_trends (
+    trend_id INT AUTO_INCREMENT PRIMARY KEY,
+    location_id INT,
+    risk_type ENUM('air_quality', 'water_security', 'green_cover', 'heat_island', 'infrastructure'),
+    forecast_year INT,
+    forecast_value DECIMAL(10,2),
+    model_used VARCHAR(100),
+    FOREIGN KEY (location_id) REFERENCES locations(location_id)
+);

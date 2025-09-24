@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Builder Dashboard - Data Pathways</title>
+    
+     
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+     
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+     
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #2c5530;
+            --secondary-color: #4a7c59;
+            --accent-color: #7fb069;
+            --light-green: #b8e6b8;
+            --dark-green: #1a3a1d;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            color: var(--primary-color) !important;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .hero-section h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .hero-section p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .btn-hero {
+            background-color: var(--accent-color);
+            border: none;
+            padding: 12px 30px;
+            font-weight: bold;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-hero:hover {
+            background-color: var(--light-green);
+            color: var(--dark-green);
+            transform: translateY(-2px);
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--accent-color), var(--light-green));
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .project-card {
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .sustainability-badge {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .map-container {
+            height: 500px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-card {
+            height: 500px;
+            overflow-y: auto;
+        }
+
+        .data-table {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .footer {
+            background-color: var(--dark-green);
+            color: white;
+            padding: 3rem 0;
+            margin-top: 4rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 1rem 0;
+        }
+
+        .layer-selector {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .location-data {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-leaf me-2"></i>Data Pathways</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#overview">Overview</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#projects">Projects</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#analytics">Analytics</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#planner">Planner Tools</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#profile">Profile</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#supportModal">Support</a></li>
+                    <li class="nav-item"><a class="nav-link text-danger" href="logout.do">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+     
+    <section class="hero-section">
+        <div class="container">
+            <h1>Builder Dashboard</h1>
+            <p>Manage your construction projects with NASA-powered climate insights and blockchain-verified sustainability tools</p>
+            <a href="#projects" class="btn btn-hero btn-lg">View Projects</a>
+            <a href="#planner" class="btn btn-hero btn-lg">Planner Tools</a>
+        </div>
+    </section>
+
+     
+    <section id="overview" class="py-5">
+        <div class="container">
+            <h2 class="section-title">Project Overview</h2>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card stat-card">
+                        <div class="stat-number">5</div>
+                        <div>Active Projects</div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card stat-card">
+                        <div class="stat-number">82</div>
+                        <div>Average Sustainability Score</div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card stat-card">
+                        <div class="stat-number">24</div>
+                        <div>Insights Generated</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+   
+    <section id="projects" class="py-5 bg-light">
+        <div class="container">
+            <h2 class="section-title">Active Projects</h2>
+            <div class="row">
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card project-card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Urban Renewal Project</h5>
+                            <p class="card-text">Downtown revitalization with green infrastructure</p>
+                            <p class="text-muted"><i class="fas fa-map-marker-alt"></i> New York, NY</p>
+                            <span class="sustainability-badge">85</span>
+                            <div class="mt-3">
+                                <button class="btn btn-primary btn-sm me-2">View Details</button>
+                                <button class="btn btn-outline-secondary btn-sm">Edit</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card project-card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Green Housing Development</h5>
+                            <p class="card-text">Sustainable residential complex with solar integration</p>
+                            <p class="text-muted"><i class="fas fa-map-marker-alt"></i> Portland, OR</p>
+                            <span class="sustainability-badge">92</span>
+                            <div class="mt-3">
+                                <button class="btn btn-primary btn-sm me-2">View Details</button>
+                                <button class="btn btn-outline-secondary btn-sm">Edit</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 d-flex align-items-center justify-content-center" style="min-height: 200px;">
+                        <div class="text-center">
+                            <i class="fas fa-plus-circle fa-3x text-muted mb-3"></i>
+                            <h5>Add New Project</h5>
+                            <button class="btn btn-success">Create Project</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+     
+    <section id="analytics" class="py-5">
+        <div class="container">
+            <h2 class="section-title">Environmental Analytics</h2>
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Environmental Trends</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="trendsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Risk Assessment</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="riskChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <section id="planner" class="py-5 bg-light">
+        <div class="container">
+            <h2 class="section-title">Planner Tools</h2>
+            <div class="row">
+                <div class="col-lg-8 mb-4">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5>Interactive Climate Map</h5>
+                            <div class="layer-selector">
+                                <select id="layerSelect" class="form-select form-select-sm">
+                                    <option value="base">Base Map</option>
+                                    <option value="ndvi">NDVI (Vegetation)</option>
+                                    <option value="lst">Land Surface Temperature</option>
+                                    <option value="precipitation">Precipitation</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div id="map" class="map-container"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card sidebar-card">
+                        <div class="card-header">
+                            <h5>Tools & Data</h5>
+                        </div>
+                        <div class="card-body">
+                             Sustainability Passport Generator 
+                            <div class="mb-4">
+                                <h6>Generate Sustainability Passport</h6>
+                                <select class="form-select mb-2">
+                                    <option>Select Project</option>
+                                    <option>Urban Renewal Project</option>
+                                    <option>Green Housing Development</option>
+                                </select>
+                                <button class="btn btn-success btn-sm w-100" onclick="generatePassport()">Generate Passport</button>
+                            </div>
+
+                             Location Data 
+                            <div id="locationData">
+                                <div class="text-center text-muted">
+                                    <i class="fas fa-map-marker-alt fa-2x mb-2"></i>
+                                    <p>Click on the map to view NASA data for that location</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <section id="data-fetch" class="py-5">
+        <div class="container">
+            <h2 class="section-title">NASA Data Fetch</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Fetch Climate Data</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="dataFetchForm">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Latitude</label>
+                                        <input type="number" class="form-control" id="latitude" min="-90" max="90" step="0.001" placeholder="40.7128">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Longitude</label>
+                                        <input type="number" class="form-control" id="longitude" min="-180" max="180" step="0.001" placeholder="-74.0060">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Data Types</label>
+                                    <select class="form-select" id="dataTypes" multiple>
+                                        <option value="ndvi">NDVI (Vegetation Health)</option>
+                                        <option value="lst">Land Surface Temperature</option>
+                                        <option value="precipitation">Precipitation</option>
+                                        <option value="aqi">Air Quality Index</option>
+                                        <option value="groundwater">Groundwater</option>
+                                    </select>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Start Date</label>
+                                        <input type="date" class="form-control" id="startDate">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">End Date</label>
+                                        <input type="date" class="form-control" id="endDate">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Fetch NASA Data</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5>Fetched Data</h5>
+                            <button id="saveDataBtn" class="btn btn-success btn-sm" style="display: none;" onclick="saveToDatabase()">Save to Database</button>
+                        </div>
+                        <div class="card-body">
+                            <div id="fetchResults">
+                                <div class="text-center text-muted">
+                                    <i class="fas fa-satellite fa-2x mb-2"></i>
+                                    <p>Submit the form to fetch NASA climate data</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+   
+    <section id="data-explanation" class="py-5 bg-light">
+        <div class="container">
+            <h2 class="section-title">NASA Data Fields Explained</h2>
+            <div class="accordion" id="dataAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                            Available NASA Datasets
+                        </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#dataAccordion">
+                        <div class="accordion-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-leaf text-success"></i> MODIS/Landsat NDVI</h6>
+                                    <p>Normalized Difference Vegetation Index for vegetation health assessment</p>
+                                    
+                                    <h6><i class="fas fa-thermometer-half text-danger"></i> MODIS LST</h6>
+                                    <p>Land Surface Temperature for thermal analysis</p>
+                                    
+                                    <h6><i class="fas fa-wind text-info"></i> AIRS/OMI</h6>
+                                    <p>Air quality measurements including NO2 and aerosol optical depth</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-cloud-rain text-primary"></i> GPM</h6>
+                                    <p>Global Precipitation Measurement for rainfall data</p>
+                                    
+                                    <h6><i class="fas fa-tint text-info"></i> GRACE</h6>
+                                    <p>Groundwater anomaly measurements</p>
+                                    
+                                    <h6><i class="fas fa-satellite text-secondary"></i> GIBS</h6>
+                                    <p>Global Imagery Browse Services for satellite imagery</p>
+                                </div>
+                            </div>
+                           
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Data Sources</h5>
+                    <ul class="list-unstyled">
+                        <li>NASA Earth Observing System Data</li>
+                        <li>MODIS Satellite Imagery</li>
+                        <li>Local Infrastructure Database</li>
+                        <li>Climate Risk Assessment Models</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-light">About Data Pathways</a></li>
+                        <li><a href="#" class="text-light">Documentation</a></li>
+                        <li><a href="#" class="text-light">Privacy Policy</a></li>
+                        <li><a href="#" class="text-light">Contact Support</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="text-center">
+                <p>&copy; 2025 Data Pathways. Empowering sustainable construction with climate intelligence.</p>
+            </div>
+        </div>
+    </footer>
+
+  
+    <div class="modal fade" id="supportModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Contact Support</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="supportForm">
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <input type="text" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Message</label>
+                            <textarea class="form-control" rows="4" required></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="submitSupport()">Send Message</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+   
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <!-- PapaParse (for CSV if needed) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <script>
+        // Global variables
+        let map;
+        let currentMarker;
+        let trendsChart;
+        let riskChart;
+        let locationCharts = {};
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeMap();
+            initializeCharts();
+            initializeForms();
+            animateElements();
+        });
+
+        // Initialize Leaflet Map
+        function initializeMap() {
+            map = L.map('map').setView([39.8283, -98.5795], 4); // Center of USA
+
+            // Base layer
+            const baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // NASA GIBS layers
+            const nasaLayers = {
+                base: baseLayer,
+                ndvi: L.tileLayer('https://map1.vis.earthdata.nasa.gov/wmts-geo/1.0.0/MODIS_Terra_NDVI_8Day/default/{time}/{tilematrixset}{max_zoom}/{z}/{y}/{x}.jpg', {
+                    attribution: 'NASA GIBS',
+                    time: '2024-01-01',
+                    tilematrixset: 'EPSG4326_250m',
+                    max_zoom: 9
+                }),
+                lst: L.tileLayer('https://map1.vis.earthdata.nasa.gov/wmts-geo/1.0.0/MODIS_Terra_LST_Day_8Day/default/{time}/{tilematrixset}{max_zoom}/{z}/{y}/{x}.png', {
+                    attribution: 'NASA GIBS',
+                    time: '2024-01-01',
+                    tilematrixset: 'EPSG4326_1km',
+                    max_zoom: 7
+                })
+            };
+
+            // Layer selector functionality
+            document.getElementById('layerSelect').addEventListener('change', function(e) {
+                const selectedLayer = e.target.value;
+                
+                // Remove all layers
+                map.eachLayer(function(layer) {
+                    if (layer !== currentMarker) {
+                        map.removeLayer(layer);
+                    }
+                });
+
+                // Add selected layer
+                if (nasaLayers[selectedLayer]) {
+                    nasaLayers[selectedLayer].addTo(map);
+                }
+            });
+
+            // Map click handler
+            map.on('click', function(e) {
+                const lat = e.latlng.lat.toFixed(4);
+                const lng = e.latlng.lng.toFixed(4);
+
+                // Remove existing marker
+                if (currentMarker) {
+                    map.removeLayer(currentMarker);
+                }
+
+                // Add new marker
+                currentMarker = L.marker([lat, lng], {draggable: true}).addTo(map);
+                
+                // Update form if present
+                const latInput = document.getElementById('latitude');
+                const lngInput = document.getElementById('longitude');
+                if (latInput) latInput.value = lat;
+                if (lngInput) lngInput.value = lng;
+
+                // Generate and display location data
+                displayLocationData(lat, lng);
+
+                // Marker drag handler
+                currentMarker.on('dragend', function(e) {
+                    const newLat = e.target.getLatLng().lat.toFixed(4);
+                    const newLng = e.target.getLatLng().lng.toFixed(4);
+                    if (latInput) latInput.value = newLat;
+                    if (lngInput) lngInput.value = newLng;
+                    displayLocationData(newLat, newLng);
+                });
+            });
+
+            // Map hover handler
+            map.on('mousemove', function(e) {
+                const lat = e.latlng.lat.toFixed(4);
+                const lng = e.latlng.lng.toFixed(4);
+                const ndvi = generateDemoNDVI(lat, lng);
+                
+                L.popup()
+                    .setLatLng(e.latlng)
+                    .setContent(`<strong>Coordinates:</strong> ${lat}, ${lng}<br><strong>NDVI:</strong> ${ndvi}`)
+                    .openOn(map);
+            });
+        }
+
+        // Initialize Charts
+        function initializeCharts() {
+            // Environmental Trends Chart
+            const trendsCtx = document.getElementById('trendsChart').getContext('2d');
+            trendsChart = new Chart(trendsCtx, {
+                type: 'line',
+                data: {
+                    labels: ['2019', '2020', '2021', '2022', '2023', '2024'],
+                    datasets: [{
+                        label: 'Heat Index',
+                        data: [32, 35, 38, 36, 40, 42],
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Air Quality Index',
+                        data: [45, 42, 38, 35, 32, 30],
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Environmental Trends Over Time'
+                        }
+                    }
+                }
+            });
+
+            // Risk Assessment Radar Chart
+            const riskCtx = document.getElementById('riskChart').getContext('2d');
+            riskChart = new Chart(riskCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Heat Risk', 'Water Risk', 'Air Quality', 'Flood Risk', 'Drought Risk', 'Storm Risk'],
+                    datasets: [{
+                        label: 'Current Risk Level',
+                        data: [65, 45, 30, 25, 55, 40],
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        pointBackgroundColor: 'rgb(255, 99, 132)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(255, 99, 132)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    elements: {
+                        line: {
+                            borderWidth: 3
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: false
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize Forms
+        function initializeForms() {
+            // Data fetch form
+            document.getElementById('dataFetchForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                fetchNASAData();
+            });
+
+            // Set default dates
+            const today = new Date();
+            const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+            
+            document.getElementById('startDate').value = lastMonth.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+        }
+
+        // Animate elements on load
+        function animateElements() {
+            gsap.from('.stat-card', {
+                duration: 1,
+                y: 50,
+                opacity: 0,
+                stagger: 0.2,
+                ease: 'power2.out'
+            });
+
+            gsap.from('.project-card', {
+                duration: 1,
+                y: 30,
+                opacity: 0,
+                stagger: 0.1,
+                delay: 0.5,
+                ease: 'power2.out'
+            });
+        }
+
+        // Generate demo NASA data
+        function generateDemoNASAData(lat, lng) {
+            const data = {};
+            
+            // NDVI (0-1, higher near equator and in temperate zones)
+            data.ndvi = generateDemoNDVI(lat, lng);
+            
+            // Land Surface Temperature (20-40°C, varies by latitude and season)
+            const latFactor = Math.abs(lat) / 90;
+            data.lst = (35 - latFactor * 15 + Math.random() * 10).toFixed(1);
+            
+            // Air Quality - NO2 (10-50 µg/m³)
+            data.no2 = (20 + Math.random() * 30).toFixed(1);
+            
+            // Aerosol Optical Depth (0-1)
+            data.aod = (0.1 + Math.random() * 0.4).toFixed(3);
+            
+            // Precipitation (0-200 mm monthly average)
+            data.precipitation = (Math.random() * 200).toFixed(1);
+            
+            // Groundwater anomaly (-10 to 10 cm)
+            data.groundwater = (Math.random() * 20 - 10).toFixed(1);
+            
+            return data;
+        }
+
+        function generateDemoNDVI(lat, lng) {
+            const latFactor = 1 - Math.abs(lat) / 90;
+            const seasonFactor = 0.8 + Math.random() * 0.4;
+            return (latFactor * seasonFactor * 0.9).toFixed(3);
+        }
+
+        // Display location data in sidebar
+        function displayLocationData(lat, lng) {
+            const data = generateDemoNASAData(lat, lng);
+            
+            const locationDataDiv = document.getElementById('locationData');
+            
+            const html = `
+                <div class="location-data fade-in">
+                    <h6><i class="fas fa-map-marker-alt"></i> Location: ${lat}, ${lng}</h6>
+                    
+                    <div class="row mt-3">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h4 text-success">${data.ndvi}</div>
+                                <small>NDVI</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h4 text-danger">${data.lst}°C</div>
+                                <small>LST</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <canvas id="locationChart" width="300" height="200"></canvas>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <h6>Air Quality</h6>
+                        <p class="mb-1">NO2: ${data.no2} µg/m³</p>
+                        <p class="mb-1">AOD: ${data.aod}</p>
+                        
+                        <h6 class="mt-3">Climate Data</h6>
+                        <p class="mb-1">Precipitation: ${data.precipitation} mm</p>
+                        <p class="mb-1">Groundwater: ${data.groundwater} cm</p>
+                    </div>
+                </div>
+            `;
+            
+            locationDataDiv.innerHTML = html;
+            
+            // Animate the new content
+            gsap.from('.fade-in', {
+                duration: 0.5,
+                opacity: 0,
+                y: 20,
+                ease: 'power2.out'
+            });
+            
+            // Create location-specific chart
+            setTimeout(() => {
+                createLocationChart(data);
+            }, 100);
+        }
+
+        // Create chart for location data
+        function createLocationChart(data) {
+            const ctx = document.getElementById('locationChart');
+            if (!ctx) return;
+            
+            // Destroy existing chart
+            if (locationCharts.location) {
+                locationCharts.location.destroy();
+            }
+            
+            locationCharts.location = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['NDVI', 'LST', 'NO2', 'Precip'],
+                    datasets: [{
+                        label: 'Environmental Metrics',
+                        data: [
+                            parseFloat(data.ndvi) * 100,
+                            parseFloat(data.lst),
+                            parseFloat(data.no2),
+                            parseFloat(data.precipitation) / 10
+                        ],
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.6)',
+                            'rgba(255, 99, 132, 0.6)',
+                            'rgba(255, 206, 86, 0.6)',
+                            'rgba(54, 162, 235, 0.6)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Fetch NASA Data function
+        function fetchNASAData() {
+            const lat = document.getElementById('latitude').value;
+            const lng = document.getElementById('longitude').value;
+            const dataTypes = Array.from(document.getElementById('dataTypes').selectedOptions).map(option => option.value);
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            // Validation
+            if (!lat || !lng || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                alert('Please enter valid latitude (-90 to 90) and longitude (-180 to 180) values.');
+                return;
+            }
+
+            if (!dataTypes.length) {
+                alert('Please select at least one data type.');
+                return;
+            }
+
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates.');
+                return;
+            }
+
+            if (new Date(startDate) >= new Date(endDate)) {
+                alert('Start date must be before end date.');
+                return;
+            }
+
+            // Check NDVI date availability
+            if (dataTypes.includes('ndvi') && new Date(startDate) < new Date('2000-02-18')) {
+                alert('NDVI data is only available from February 18, 2000 onwards.');
+                return;
+            }
+
+            // Simulate data fetching
+            const fetchResults = document.getElementById('fetchResults');
+            fetchResults.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div><p class="mt-2">Fetching NASA data...</p></div>';
+
+            setTimeout(() => {
+                const data = generateDemoNASAData(lat, lng);
+                displayFetchResults(data, dataTypes, lat, lng, startDate, endDate);
+                document.getElementById('saveDataBtn').style.display = 'block';
+            }, 2000);
+        }
+
+        // Display fetch results
+        function displayFetchResults(data, dataTypes, lat, lng, startDate, endDate) {
+            const fetchResults = document.getElementById('fetchResults');
+            
+            let tableHTML = `
+                <div class="mb-3">
+                    <h6>Location: ${lat}, ${lng}</h6>
+                    <p class="text-muted">Period: ${startDate} to ${endDate}</p>
+                </div>
+                <div class="data-table">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Data Type</th>
+                                <th>Value</th>
+                                <th>Unit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            dataTypes.forEach(type => {
+                let value, unit;
+                switch(type) {
+                    case 'ndvi':
+                        value = data.ndvi;
+                        unit = 'Index (0-1)';
+                        break;
+                    case 'lst':
+                        value = data.lst;
+                        unit = '°C';
+                        break;
+                    case 'precipitation':
+                        value = data.precipitation;
+                        unit = 'mm';
+                        break;
+                    case 'aqi':
+                        value = data.no2;
+                        unit = 'µg/m³';
+                        break;
+                    case 'groundwater':
+                        value = data.groundwater;
+                        unit = 'cm';
+                        break;
+                }
+                
+                tableHTML += `
+                    <tr>
+                        <td>${type.toUpperCase()}</td>
+                        <td>${value}</td>
+                        <td>${unit}</td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += '</tbody></table></div>';
+            fetchResults.innerHTML = tableHTML;
+        }
+
+        // Utility functions
+        function generatePassport() {
+            alert('Sustainability Passport generated successfully! This feature simulates blockchain-verified environmental compliance documentation.');
+        }
+
+        function saveToDatabase() {
+            alert('Data saved to database successfully! In production, this would store the fetched NASA data for future analysis.');
+        }
+
+        function submitSupport() {
+            alert('Support request submitted successfully! Our team will contact you within 24 hours.');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('supportModal'));
+            modal.hide();
+        }
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
